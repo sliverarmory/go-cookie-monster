@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+    branches: [main]
+
+jobs:
+  dll-build:
+    name: Build and publish tagged release
+    if: startsWith( github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: OS Packages
+        run: |
+          sudo apt-get update --fix-missing && sudo apt-get -y install \
+          git build-essential zlib1g zlib1g-dev wget zip unzip \
+          mingw-w64 binutils-mingw-w64 g++-mingw-w64 gcc-multilib jq
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23.3
+
+      - name: Minisign
+        run: |
+          MINISIGN_TMP=`mktemp -d`
+          cd $MINISIGN_TMP
+          wget https://github.com/aead/minisign/releases/download/v0.2.0/minisign-linux-amd64.tar.gz
+          tar xvf minisign-linux-amd64.tar.gz
+          mv ./minisign ~/minisign
+          touch ~/minisign.key && chmod 600 ~/minisign.key
+          echo -e "${{ secrets.MINISIGN_PRIVATE_KEY }}" > ~/minisign.key
+          ls -l ~/
+          realpath ~/
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Git Fetch Tags
+        run: git fetch --prune --unshallow --tags -f
+
+      - name: Compile
+        run: |
+          mkdir artifacts
+          go mod tidy
+          make dll
+          cp ./go-cookie-monster.dll ./artifacts
+
+      - name: Build Package
+        run: |
+          mkdir packages
+          cp ./LICENSE ./artifacts
+          VERSION=$(git describe --tags --abbrev=0)
+          cat extension.json | jq ".version |= \"$VERSION\"" > ./artifacts/extension.json
+          cd artifacts
+          MANIFEST=$(cat extension.json | base64 -w 0)
+          COMMAND_NAME=$(cat extension.json | jq -r .command_name)
+          tar czvf ../packages/$COMMAND_NAME.tar.gz .
+          cd ../packages
+          bash -c "echo \"\" | /home/runner/minisign -s /home/runner/minisign.key -S -m ./$COMMAND_NAME.tar.gz -t \"$MANIFEST\" -x $COMMAND_NAME.minisig"
+
+      - name: "Publish Release"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            ./packages/*.tar.gz
+            ./packages/*.minisig
