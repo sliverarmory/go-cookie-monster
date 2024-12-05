@@ -51,7 +51,6 @@ jobs:
       - name: Build Package
         run: |
           mkdir packages
-          cp ./LICENSE ./artifacts
           VERSION=$(git describe --tags --abbrev=0)
           cat extension.json | jq ".version |= \"$VERSION\"" > ./artifacts/extension.json
           cd artifacts
