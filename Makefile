@@ -1,4 +1,4 @@
-# Binary names
+# Binary names (Windows targets only)
 EXE_NAME=go-cookie-monster.exe
 DLL_NAME=go-cookie-monster.dll
 
@@ -16,14 +16,14 @@ ifeq ($(OS),Windows_NT)
     .SHELLFLAGS := -NoProfile -Command
     RM_F := Remove-Item -Force -Recurse -ErrorAction Ignore
     # For Windows builds
-    BUILD_CMD_EXE = $$env:CGO_ENABLED=1; $$env:GOARCH='amd64'; $$env:GOOS='windows'; $$env:CC='x86_64-w64-mingw32-gcc'; $$env:CXX='x86_64-w64-mingw32-g++'; $(GOBUILD)
-    BUILD_CMD_DLL = $$env:CGO_ENABLED=1; $$env:GOARCH='amd64'; $$env:GOOS='windows'; $$env:CC='x86_64-w64-mingw32-gcc'; $$env:CXX='x86_64-w64-mingw32-g++'; $(GOBUILD) -buildmode=c-shared
+    BUILD_CMD_EXE = $$env:CGO_ENABLED=1; $$env:GOARCH='amd64'; $$env:GOOS='windows'; $(GOBUILD)
+    BUILD_CMD_DLL = $$env:CGO_ENABLED=1; $$env:GOARCH='amd64'; $$env:GOOS='windows'; $(GOBUILD) -buildmode=c-shared
 else
-    # Linux-specific settings
+    # Unix-like system settings (Linux/MacOS)
     RM_F := rm -f
-    # For cross-compiling to Windows from Linux
-    BUILD_CMD_EXE = CGO_ENABLED=1 GOARCH=amd64 GOOS=windows CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ $(GOBUILD)
-    BUILD_CMD_DLL = CGO_ENABLED=1 GOARCH=amd64 GOOS=windows CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ $(GOBUILD) -buildmode=c-shared
+    # Cross-compilation settings
+    BUILD_CMD_EXE = GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ $(GOBUILD)
+    BUILD_CMD_DLL = GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ $(GOBUILD) -buildmode=c-shared
 endif
 
 all: build-exe build-dll

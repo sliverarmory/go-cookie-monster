@@ -18,6 +18,12 @@ make dll
 
 ## Usage
 
+Modes
+- `keys`: attempt to obtain master and appbound keys
+- `files`: attempt to copy databases via a chrome process's handles, fallback to disk
+- `cookies`: decrypt the cookies db
+- `logindata`: decrypt the login data db
+
 ```
 Usage of go-cookie-monster [all|keys|files|cookies|logindata]:
   -dbpath string
